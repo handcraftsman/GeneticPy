@@ -3,9 +3,8 @@
 
 def crossover(parent, parent2, get_fitness):
     index = random.randint(0, len(parent.Genes) - 1)
-    genes = list(parent.Genes)
-    genes[index] = parent2.Genes[index]
-    childGenes = (''.join(genes))
+    childGenes = list(parent.Genes)
+    childGenes[index] = parent2.Genes[index]
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
 
@@ -13,19 +12,17 @@ def crossover(parent, parent2, get_fitness):
 def mutate(parent, geneSet, get_fitness):
     geneIndex = random.randint(0, len(geneSet) - 1)
     index = random.randint(0, len(parent.Genes) - 1)
-    genes = list(parent.Genes)
-    genes[index] = geneSet[geneIndex]
-    childGenes = (''.join(genes))
+    childGenes = list(parent.Genes)
+    childGenes[index] = geneSet[geneIndex]
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
 
 
 def generateParent(length, geneSet, get_fitness):
-    genes = list("")
+    childGenes = []
     for i in range(0, length):
         geneIndex = random.randint(0, len(geneSet) - 1)
-        genes.append(geneSet[geneIndex])
-    childGenes = (''.join(genes))
+        childGenes.append(geneSet[geneIndex])
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
 

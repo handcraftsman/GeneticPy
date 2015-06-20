@@ -13,7 +13,7 @@ def getFitness(candidate, target):
 
 def display(candidate, startTime):
     timeDiff = datetime.datetime.now() - startTime
-    print("%s\t%i\t%s" % (candidate.Genes, candidate.Fitness, str(timeDiff)))
+    print("%s\t%i\t%s" % ((''.join(candidate.Genes)), candidate.Fitness, str(timeDiff)))
 
 
 class StringDuplicationTests(unittest.TestCase):
@@ -24,7 +24,7 @@ class StringDuplicationTests(unittest.TestCase):
         fnDisplay = lambda candidate: display(candidate, startTime)
         fnGetFitness = lambda candidate: getFitness(candidate, target)
         best = genetic.getBest(fnGetFitness, fnDisplay, len(target), len(target), geneset)
-        self.assertEqual(best.Genes, target)
+        self.assertEqual((''.join(best.Genes)), target)
 
 
 if __name__ == '__main__':

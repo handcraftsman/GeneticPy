@@ -3,17 +3,8 @@ import datetime
 import genetic
 
 
-class Point:
-    Row = None
-    Col = None
-
-    def __init__(self, row, col):
-        self.Row = row
-        self.Col = col
-
-
-def getFitness(candidate, gene_set):
-    board = getBoard(candidate, gene_set)
+def getFitness(candidate):
+    board = getBoard(candidate)
     rowsWithQueens = {}
     colsWithQueens = {}
     northEastDiagonalsWithQueens = {}
@@ -32,27 +23,16 @@ def getFitness(candidate, gene_set):
            + len(southEastDiagonalsWithQueens)
 
 
-def getPoint(rowGene, colGene, gene_set):
-    rowIndex = gene_set.index(rowGene)
-    if rowIndex == -1:
-        raise ValueError("'" + rowGene + "' is an invalid gene")
-    colIndex = gene_set.index(colGene)
-    if colIndex == -1:
-        raise ValueError("'" + colGene + "' is an invalid gene")
-    return Point(rowIndex, colIndex)
-
-
-def getBoard(candidate, gene_set):
+def getBoard(candidate):
     board = [['.'] * 8 for i in range(8)]
     for index in range(0, len(candidate), 2):
-        point = getPoint(candidate[index], candidate[index + 1], gene_set)
-        board[point.Row][point.Col] = 'Q'
+        board[candidate[index]][candidate[index + 1]] = 'Q'
     return board
 
 
-def display(candidate, gene_set, startTime):
+def display(candidate, startTime):
     timeDiff = datetime.datetime.now() - startTime
-    board = getBoard(candidate.Genes, gene_set)
+    board = getBoard(candidate.Genes)
     for i in range(8):
         print(board[i][0],
               board[i][1],
@@ -63,17 +43,18 @@ def display(candidate, gene_set, startTime):
               board[i][6],
               board[i][7]
               )
-    print("%s\t%i\t%s" % (candidate.Genes, candidate.Fitness, str(timeDiff)))
+    print("%s\t%i\t%s" % (''.join(map(str, candidate.Genes)), candidate.Fitness, str(timeDiff)))
 
 
 class EightQueensTests(unittest.TestCase):
     def test(self):
-        geneset = '12345678'
+        geneset = [0, 1, 2, 3, 4, 5, 6, 7]
+        optimalValue = 8 + 8 + 8 + 8
         startTime = datetime.datetime.now()
-        fnDisplay = lambda candidate: display(candidate, geneset, startTime)
-        fnGetFitness = lambda candidate: getFitness(candidate, geneset)
-        best = genetic.getBest(fnGetFitness, fnDisplay, 16, 8 + 8 + 8 + 8, geneset)
-        self.assertEqual(best.Fitness, 8 + 8 + 8 + 8)
+        fnDisplay = lambda candidate: display(candidate, startTime)
+        fnGetFitness = lambda candidate: getFitness(candidate)
+        best = genetic.getBest(fnGetFitness, fnDisplay, 16, optimalValue, geneset)
+        self.assertEqual(best.Fitness, optimalValue)
 
 
 if __name__ == '__main__':
