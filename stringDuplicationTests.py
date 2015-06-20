@@ -23,7 +23,7 @@ class StringDuplicationTests(unittest.TestCase):
         target = "Not all those who wander are lost."
         fnDisplay = lambda candidate: display(candidate, startTime)
         fnGetFitness = lambda candidate: getFitness(candidate, target)
-        best = genetic.getBest(fnGetFitness, fnDisplay, len(target), geneset)
+        best = genetic.getBest(fnGetFitness, fnDisplay, len(target), len(target), geneset)
         self.assertEqual(best.Genes, target)
 
 
