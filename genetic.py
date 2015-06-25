@@ -4,7 +4,7 @@
 def crossover(parent, parent2, get_fitness):
     destIndex = random.randint(0, len(parent.Genes) - 1)
     srcIndex = destIndex if len(parent2.Genes) > destIndex else random.randint(0, len(parent2.Genes) - 1)
-    childGenes = list(parent.Genes)
+    childGenes = parent.Genes[:]
     childGenes[destIndex] = parent2.Genes[srcIndex]
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
@@ -12,7 +12,7 @@ def crossover(parent, parent2, get_fitness):
 
 def mutate(parent, geneSet, get_fitness, createGene):
     index = random.randint(0, len(parent.Genes) - 1)
-    childGenes = list(parent.Genes)
+    childGenes = parent.Genes[:]
     if geneSet is not None:
         geneIndex = random.randint(0, len(geneSet) - 1)
         childGenes[index] = geneSet[geneIndex]
