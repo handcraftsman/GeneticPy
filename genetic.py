@@ -2,43 +2,58 @@
 
 
 def crossover(parent, parent2, get_fitness):
-    index = random.randint(0, len(parent.Genes) - 1)
+    destIndex = random.randint(0, len(parent.Genes) - 1)
+    srcIndex = destIndex if len(parent2.Genes) > destIndex else random.randint(0, len(parent2.Genes) - 1)
     childGenes = list(parent.Genes)
-    childGenes[index] = parent2.Genes[index]
+    childGenes[destIndex] = parent2.Genes[srcIndex]
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
 
 
-def mutate(parent, geneSet, get_fitness):
-    geneIndex = random.randint(0, len(geneSet) - 1)
+def mutate(parent, geneSet, get_fitness, createGene):
     index = random.randint(0, len(parent.Genes) - 1)
     childGenes = list(parent.Genes)
-    childGenes[index] = geneSet[geneIndex]
-    fitness = get_fitness(childGenes)
-    return Individual(childGenes, fitness)
-
-
-def generateParent(length, geneSet, get_fitness):
-    childGenes = []
-    for i in range(0, length):
+    if geneSet is not None:
         geneIndex = random.randint(0, len(geneSet) - 1)
-        childGenes.append(geneSet[geneIndex])
+        childGenes[index] = geneSet[geneIndex]
+    else:
+        childGenes[index] = createGene(index)
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness)
 
 
-def getBest(get_fitness, display, targetLen, optimalFitness, geneSet):
+def generateParent(minLength, maxLength, geneSet, get_fitness, createGene):
+    childGenes = []
+    length = random.randint(minLength, maxLength)
+    if geneSet is not None:
+        for i in range(0, length):
+            geneIndex = random.randint(0, len(geneSet) - 1)
+            childGenes.append(geneSet[geneIndex])
+    else:
+        for i in range(0, length):
+            childGenes.append(createGene(i))
+    fitness = get_fitness(childGenes)
+    return Individual(childGenes, fitness)
+
+
+def getBest(get_fitness, display, minLen, optimalFitness, geneSet=None, createGene=None, maxLen=None):
     random.seed()
-    bestParent = generateParent(targetLen, geneSet, get_fitness)
+    if geneSet is None and createGene is None:
+        raise ValueError('must specify geneSet or createGene')
+    if geneSet is not None and createGene is not None:
+        raise ValueError('cannot specify both geneSet and createGene')
+    if maxLen is None:
+        maxLen = minLen
+    bestParent = generateParent(minLen, maxLen, geneSet, get_fitness, createGene)
     display(bestParent)
 
     options = {
-        0: lambda p: mutate(p, geneSet, get_fitness),
+        0: lambda p: mutate(p, geneSet, get_fitness, createGene),
         1: lambda p: crossover(p, bestParent, get_fitness)
     }
 
     while bestParent.Fitness < optimalFitness:
-        parent = generateParent(targetLen, geneSet, get_fitness)
+        parent = generateParent(minLen, maxLen, geneSet, get_fitness, createGene)
         attemptsSinceLastImprovement = 0
         while attemptsSinceLastImprovement < 128:
             child = options[random.randint(0, len(options) - 1)](parent)
