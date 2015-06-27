@@ -84,7 +84,7 @@ def createDot(genes):
                 if not haveZeroNode:
                     dotCommands.append("zero [label=\"0\"]")
                     haveZeroNode = True
-                    dotCommands.append(str(index) + " -> zero")
+                dotCommands.append(str(index) + " -> zero")
             rightIndex = element.Right
             if index < rightIndex < len(genes):
                 stack.append(rightIndex)
@@ -93,7 +93,7 @@ def createDot(genes):
                 if not haveZeroNode:
                     dotCommands.append("zero [label=\"0\"]")
                     haveZeroNode = True
-                    dotCommands.append(str(index) + " -> zero")
+                dotCommands.append(str(index) + " -> zero")
 
     return dotCommands
 
