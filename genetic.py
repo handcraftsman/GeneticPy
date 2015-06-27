@@ -1,4 +1,5 @@
-﻿import random
+﻿from operator import attrgetter
+import random
 
 
 def crossover(parent, parent2, get_fitness):
@@ -7,7 +8,7 @@ def crossover(parent, parent2, get_fitness):
     childGenes = parent.Genes[:]
     childGenes[destIndex] = parent2.Genes[srcIndex]
     fitness = get_fitness(childGenes)
-    return Individual(childGenes, fitness)
+    return Individual(childGenes, fitness, "crossover")
 
 
 def mutate(parent, geneSet, get_fitness, createGene):
@@ -19,7 +20,7 @@ def mutate(parent, geneSet, get_fitness, createGene):
     else:
         childGenes[index] = createGene(index)
     fitness = get_fitness(childGenes)
-    return Individual(childGenes, fitness)
+    return Individual(childGenes, fitness, "mutate")
 
 
 def generateParent(minLength, maxLength, geneSet, get_fitness, createGene):
@@ -33,10 +34,11 @@ def generateParent(minLength, maxLength, geneSet, get_fitness, createGene):
         for i in range(0, length):
             childGenes.append(createGene(i))
     fitness = get_fitness(childGenes)
-    return Individual(childGenes, fitness)
+    return Individual(childGenes, fitness, "random")
 
 
-def getBest(get_fitness, display, minLen, optimalFitness, geneSet=None, createGene=None, maxLen=None):
+def getBest(get_fitness, display, minLen, optimalFitness,
+            geneSet=None, createGene=None, maxLen=None):
     random.seed()
     if geneSet is None and createGene is None:
         raise ValueError('must specify geneSet or createGene')
@@ -72,7 +74,9 @@ def getBest(get_fitness, display, minLen, optimalFitness, geneSet=None, createGe
 class Individual:
     Genes = None
     Fitness = None
+    Strategy = None
 
-    def __init__(self, genes, fitness):
+    def __init__(self, genes, fitness, strategy):
         self.Genes = genes
         self.Fitness = fitness
+        self.Strategy = strategy
