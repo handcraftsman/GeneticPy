@@ -18,39 +18,62 @@ class Node:
     def isFunction(self):
         return self.Left is not None
 
+    def __str__(self):
+        if self.isFunction():
+            result = "(" + self.Value + "[" + str(self.Left) + "]" \
+                     + " [" + str(self.Right) + "]" \
+                     + ") "
+        else:
+            result = str(self.Value) + " "
+        return result
+
+
+def getUsedIndexes(candidate):
+    used = {0: [0]}
+    if candidate[0].isFunction():
+        for i in reversed(range(len(candidate))):
+            element = candidate[i]
+            iUsed = [i]
+            if element.isFunction():
+                leftIndex = element.Left
+                rightIndex = element.Right
+                if i < leftIndex < len(candidate):
+                    iUsed.extend(used[leftIndex])
+                if rightIndex is not None:
+                    if i < rightIndex < len(candidate):
+                        iUsed.extend(used[rightIndex])
+            used[i] = iUsed
+    return set(used[0])
+
 
 def getFitness(candidate, expectedTotal):
-    used = {0: [0]}
+    usedIndexes = list(sorted(getUsedIndexes(candidate)))
+
     localCopy = candidate[:]
     if candidate[0].isFunction():
-        for i in reversed(range(len(localCopy))):
+        for i in reversed(usedIndexes):
             element = localCopy[i]
-            iUsed = [i]
             if element.isFunction():
                 leftIndex = element.Left
                 rightIndex = element.Right
                 left = 0
                 if i < leftIndex < len(localCopy):
                     left = localCopy[leftIndex].Value
-                    iUsed.extend(used[leftIndex])
                 right = 0
                 if i < rightIndex < len(localCopy):
                     right = localCopy[rightIndex].Value
-                    iUsed.extend(used[rightIndex])
                 op = operator.add
                 if element.Value == '-':
                     op = operator.sub
                 value = op(left, right)
                 localCopy[i] = Node(value)
-            used[i] = iUsed
 
     total = localCopy[0].Value
     fitness = total if expectedTotal >= total >= 0 \
         else total - expectedTotal if total < 0 \
         else expectedTotal - total
     if fitness == expectedTotal:
-        distinctElementsUsed = set(used[0])
-        fitness = 1000 - len(distinctElementsUsed)
+        fitness = 1000 - len(usedIndexes)
 
     return fitness
 
@@ -100,10 +123,11 @@ def createDot(genes):
 
 def displayRaw(candidate, startTime):
     timeDiff = datetime.datetime.now() - startTime
-    print("%s\t%i\t%s" %
-          ((' '.join(map(str, [item.Value for item in candidate.Genes]))),
+    print("%s\t%i\t%s\t%s" %
+          ((' '.join(map(str, [item for item in candidate.Genes]))),
            candidate.Fitness,
-           str(timeDiff)))
+           str(timeDiff),
+           candidate.Strategy))
 
 
 def displayPrefixNotation(candidate, startTime):
@@ -150,13 +174,65 @@ def visitNode(genes, used, index):
     return result
 
 
-def createGene(index, geneset, maxNodes):
+def createGene(index, length, geneset):
     value = geneset[random.randint(0, len(geneset) - 1)]
     if isinstance(value, str):
-        left = random.randint(index, maxNodes - 1)
-        right = random.randint(index, maxNodes - 1)
+        left = random.randint(index, length - 1) if index < length else 0
+        right = random.randint(index, length - 1) if index < length else 0
         return Node(value, left, right)
     return Node(value)
+
+
+def mutate(childGenes, fnCreateGene):
+    childIndexesUsed = list(getUsedIndexes(childGenes))
+    index = childIndexesUsed[random.randint(0, len(childIndexesUsed) - 1)]
+    childGenes[index] = fnCreateGene(index, len(childGenes))
+
+
+def crossover(child, parent):
+    usedParentIndexes = list(sorted(getUsedIndexes(parent)))
+    usedChildIndexes = list(getUsedIndexes(child))
+
+    if len(usedParentIndexes) == 1 and len(usedChildIndexes) == 1:
+        # node 0 has no child nodes, just copy it
+        child[0] = parent[0]
+        return
+
+    while True:
+        parentIndex = usedParentIndexes[random.randint(0, len(usedParentIndexes) - 1)]
+        childIndex = usedChildIndexes[random.randint(0, len(usedChildIndexes) - 1)]
+        if parentIndex != 0 or childIndex != 0:
+            # don't copy the root to the root
+            break
+
+    unusedChildIndexes = list(sorted(set(range(childIndex, len(child))) - set(usedChildIndexes)))
+    unusedChildIndexes.insert(0, childIndex)
+
+    mappedIndexes = {}
+    nextIndex = 0
+    for pIndex in usedParentIndexes:
+        if pIndex < parentIndex:
+            continue
+        if len(unusedChildIndexes) > nextIndex:
+            mappedIndexes[pIndex] = unusedChildIndexes[nextIndex]
+        else:
+            mappedIndexes[pIndex] = len(child) + nextIndex - len(unusedChildIndexes)
+        nextIndex += 1
+
+    for parentIndex in mappedIndexes.keys():
+        node = parent[parentIndex]
+        childIndex = mappedIndexes[parentIndex]
+        childNode = Node(node.Value, node.Left, node.Right)
+        if childIndex < len(child):
+            child[childIndex] = childNode
+        else:
+            child.append(childNode)
+        left = node.Left
+        if left is not None:
+            childNode.Left = mappedIndexes[left] if left in mappedIndexes else 0
+        right = node.Right
+        if right is not None:
+            childNode.Right = mappedIndexes[right] if right in mappedIndexes else 0
 
 
 class EquationGenerationTests(unittest.TestCase):
@@ -167,11 +243,14 @@ class EquationGenerationTests(unittest.TestCase):
         maxNodes = 30
         optimalValue = 1000 - minNodes
         startTime = datetime.datetime.now()
-        fnDisplay = lambda candidate: displayPrefixNotation(candidate, startTime)
+        fnDisplay = lambda candidate: displayRaw(candidate, startTime)
         fnGetFitness = lambda candidate: getFitness(candidate, expectedTotal)
-        fnCreateGene = lambda index: createGene(index, geneset, maxNodes)
-        best = genetic.getBest(fnGetFitness, fnDisplay, minNodes, optimalValue, createGene=fnCreateGene,
-                               maxLen=maxNodes)
+        fnCreateGene = lambda index, length: createGene(index, length, geneset)
+        fnCrossover = lambda child, parent: crossover(child, parent)
+        fnMutate = lambda child: mutate(child, fnCreateGene)
+        best = genetic.getBest(fnGetFitness, fnDisplay, minNodes, optimalValue,
+                               createGene=fnCreateGene, maxLen=maxNodes,
+                               customMutate=fnMutate, customCrossover=fnCrossover)
         self.assertTrue(best.Fitness >= optimalValue)
 
     def test_getFitness_given_total_equals_expectedTotal_should_get_1000_minus_total_Nodes_used(self):

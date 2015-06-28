@@ -2,23 +2,30 @@
 import random
 
 
-def crossover(parent, parent2, get_fitness):
-    destIndex = random.randint(0, len(parent.Genes) - 1)
-    srcIndex = destIndex if len(parent2.Genes) > destIndex else random.randint(0, len(parent2.Genes) - 1)
+def crossover(parent, parent2, get_fitness, customCrossover):
     childGenes = parent.Genes[:]
-    childGenes[destIndex] = parent2.Genes[srcIndex]
+    if customCrossover is not None:
+        customCrossover(childGenes, parent2.Genes[:])
+    else:
+        destIndex = random.randint(0, len(parent.Genes) - 1)
+        srcIndex = destIndex if len(parent2.Genes) > destIndex else random.randint(0, len(parent2.Genes) - 1)
+        childGenes[destIndex] = parent2.Genes[srcIndex]
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness, "crossover")
 
 
-def mutate(parent, geneSet, get_fitness, createGene):
-    index = random.randint(0, len(parent.Genes) - 1)
+def mutate(parent, geneSet, get_fitness, createGene, customMutate):
     childGenes = parent.Genes[:]
-    if geneSet is not None:
-        geneIndex = random.randint(0, len(geneSet) - 1)
-        childGenes[index] = geneSet[geneIndex]
+    if customMutate is not None:
+        customMutate(childGenes)
     else:
-        childGenes[index] = createGene(index)
+        index = random.randint(0, len(parent.Genes) - 1)
+        if geneSet is not None:
+            geneIndex = random.randint(0, len(geneSet) - 1)
+            childGenes[index] = geneSet[geneIndex]
+        else:
+            childGenes[index] = createGene(index, len(childGenes))
+
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness, "mutate")
 
@@ -32,13 +39,14 @@ def generateParent(minLength, maxLength, geneSet, get_fitness, createGene):
             childGenes.append(geneSet[geneIndex])
     else:
         for i in range(0, length):
-            childGenes.append(createGene(i))
+            childGenes.append(createGene(i, length))
     fitness = get_fitness(childGenes)
     return Individual(childGenes, fitness, "random")
 
 
 def getBest(get_fitness, display, minLen, optimalFitness,
-            geneSet=None, createGene=None, maxLen=None):
+            geneSet=None, createGene=None, maxLen=None,
+            customMutate=None, customCrossover=None):
     random.seed()
     if geneSet is None and createGene is None:
         raise ValueError('must specify geneSet or createGene')
@@ -50,8 +58,8 @@ def getBest(get_fitness, display, minLen, optimalFitness,
     display(bestParent)
 
     options = {
-        0: lambda p: mutate(p, geneSet, get_fitness, createGene),
-        1: lambda p: crossover(p, bestParent, get_fitness)
+        0: lambda p: mutate(p, geneSet, get_fitness, createGene, customMutate),
+        1: lambda p: crossover(p, bestParent, get_fitness, customCrossover)
     }
 
     while bestParent.Fitness < optimalFitness:
