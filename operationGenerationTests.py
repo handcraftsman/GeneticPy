@@ -284,11 +284,11 @@ class OperationGenerationTests(unittest.TestCase):
         result = getFitness(genes, self.geneset, rules)
         self.assertEqual(result, 1)
 
-    def test_getFitness_given_base_node_is_B_and_1st_2_rules_match_should_return_3(self):
+    def test_getFitness_given_base_node_is_B_and_1st_2_rules_match_should_return_2(self):
         rules = [[0, 0, 0], [0, 1, 1], [1, 0, 1]]
         genes = [Node('B')]
         result = getFitness(genes, self.geneset, rules)
-        self.assertEqual(result, 3)
+        self.assertEqual(result, 2)
 
     def test_getFitness_given_base_node_is_NOT_with_Left_node_out_of_bounds_and_1st_rule_matches_should_return_1(self):
         rules = [[1, 1, 1], [0, 0, 0]]
@@ -296,11 +296,11 @@ class OperationGenerationTests(unittest.TestCase):
         result = getFitness(genes, self.geneset, rules)
         self.assertEqual(result, 1)
 
-    def test_getFitness_given_base_node_is_NOT_with_Left_node_A_and_2nd_rule_matches_should_return_2(self):
+    def test_getFitness_given_base_node_is_NOT_with_Left_node_A_and_2nd_rule_matches_should_return_1(self):
         rules = [[0, 0, 0], [1, 1, 1]]
         genes = [Node('NOT', 100, 0)]
         result = getFitness(genes, self.geneset, rules)
-        self.assertEqual(result, 2)
+        self.assertEqual(result, 1)
 
     def test_getFitness_given_base_node_is_AND_with_both_nodes_out_of_bounds_and_0_matching_rules_should_return_0(self):
         rules = [[1, 0, 1]]
