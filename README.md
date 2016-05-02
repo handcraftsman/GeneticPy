@@ -35,10 +35,17 @@ Genetic solver written in Python
 
  - graphColoringTests.py - 4-coloring maps, see [related blog post](https://handcraftsman.wordpress.com/2015/06/21/four-coloring-a-graph-of-u-s-states-with-python-and-a-ga/)
 
- - equationGenerationTests.py - equation discovery, see [related blog post](https://handcraftsman.wordpress.com/2015/06/25/evolving-a-genetic-solver-in-python-part-3/)
+## Obsolete samples
 
- - operationGenerationTests.py - generating OR and XOR with only AND and NOT, see [related blog post](https://handcraftsman.wordpress.com/2015/07/02/generating-or-and-xor-with-only-and-and-not-gates/)
+The following sample projects included in this repository work but no longer have a related blog post because I've changed my implementation approach.
 
+ - equationGenerationTests.py - equation discovery
+
+ - operationGenerationTests.py - generating OR and XOR with only AND and NOT
+
+## e-book
+
+The code and examples in ths repository work as is and you are welcome to use them.  In late 2015 I restarted from scratch with a slower feature progression to resolve some performance issues with more advanced genetic programming topics.  That has evolved into an e-book entitled [Genetic Algorithms with Python](https://leanpub.com/genetic_algorithms_with_python) that I'm writing on Leanpub.  Try the sample chapter.
 
 ## License
 
